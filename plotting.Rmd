@@ -1,0 +1,167 @@
+---
+title: "260finalproject"
+author: "Arm Wonghirundacha"
+date: "2023-05-04"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+
+```{r}
+weather <- read.table("~/Desktop/260final/weather.csv", quote="\"", comment.char="")
+stock <- read.table("~/Desktop/260final/stock.csv", quote="\"", comment.char="")
+googletrend <- read.csv("~/Desktop/260final/google_trend.csv", header=FALSE)
+```
+
+```{r}
+gt_weather <- tail(weather, 60)
+gt_stock <- tail(stock, 40)
+gt_googletrend <- tail(as.data.frame(googletrend$V2), 10)
+
+# point predictions
+b_weather <- c(49.73713637, 50.03155545, 50.31635223, 50.5917428 , 50.85256603,
+       51.17748863, 51.43813837, 51.74039677, 52.0656618 , 52.3193757 ,
+       52.59365452, 52.91349371, 53.23115809, 53.50630975, 53.77625511,
+       54.05181408, 54.35965977, 54.62343204, 54.90316102, 55.22674772,
+       55.53539024, 55.82543735, 56.17320355, 56.3858618 , 56.65364559,
+       56.93841324, 57.16206807, 57.4823809 , 57.77892426, 58.05970074)
+b_stock <- c(3987.7971541 , 3992.48523396, 3982.82467811, 3988.69104342,
+       3994.4036213 , 3997.05949639, 3994.82663307, 3997.96795855,
+       3994.94340498, 3987.1118426 , 3992.68822069, 3996.49423886,
+       3986.74912845, 3983.60087943, 3989.11330343, 3986.13052032,
+       3990.56859345, 3989.38205921, 3992.44247594, 4000.5868318)
+b_googletrend <- c(45.91859709, 46.56241817, 46.5522941 , 46.7268302 , 47.22626531)
+
+f_weather <- rep(50.03, 30)
+f_stock <- rep(4167.586, 20)
+f_googletrend <- c(73.48885, 78.78296 ,75.70763, 77.49408, 76.45633)
+
+n_weather <- c(48.749294,48.781956,48.78084, 48.781006,48.780388,48.780228,49.00718, 49.130306,49.117638,49.120495,49.181763,49.189568,49.190735,49.189686,49.195114,49.197758,49.198715,49.2241,49.222073,49.223145,49.22249, 49.222466,49.222466,49.222466,49.222466,49.222466,49.222466,49.222466,49.222466, 49.222466)
+n_stock <- c(4115.903, 4130.5303, 4106.8584, 4097.4087, 4112.076, 4115.7715, 4115.5615, 4098.744, 4153.0015, 4143.4697, 4157.468, 4160.927, 4160.5576, 4136.0215, 4140.1963, 4143.4956, 4078.261, 4063.783, 4142.636, 4175.035)
+n_googletrend <- c(54.036434,65.87571,61.685757,63.34208,66.43682)
+
+```
+
+
+
+```{r}
+# Create data frames
+df_ground_truths <- data.frame(
+  Time = 1:nrow(gt_googletrend),
+  Category = "Ground Truth",
+  Value = gt_googletrend$`googletrend$V2`
+)
+
+df_b <- data.frame(
+  Time = seq(nrow(gt_googletrend)-length(b_googletrend)+1, nrow(gt_googletrend)),
+  Category = "Bayesian",
+  Value = b_googletrend
+)
+
+df_f <- data.frame(
+  Time = seq(nrow(gt_googletrend)-length(b_googletrend)+1, nrow(gt_googletrend)),
+  Category = "Frequentist",
+  Value = f_googletrend
+)
+
+df_n <- data.frame(
+  Time = seq(nrow(gt_googletrend)-length(b_googletrend)+1, nrow(gt_googletrend)),
+  Category = "NN",
+  Value = n_googletrend
+)
+
+# Combine data frames
+df_combined <- rbind(df_ground_truths, df_b, df_f, df_n)
+
+my_colors <- c("#F8766D", "#00BA38", "black", "#619CFF")
+
+ggplot(df_combined, aes(x = Time, y = Value, color = Category)) +
+  geom_line() +
+  labs(x = "Time", y = "Trend Value", color = "Category") +
+  theme_minimal() +
+  scale_color_manual(values = my_colors) + 
+  ggtitle("Google Trends for \"Artificial Intelligence\" over time") + ylab("search interest")
+```
+```{r}
+# Create data frames
+df_ground_truths <- data.frame(
+  Time = 1:nrow(gt_weather),
+  Category = "Ground Truth",
+  Value = gt_weather$V1
+)
+
+df_b <- data.frame(
+  Time = seq(nrow(gt_weather)-length(b_weather)+1, nrow(gt_weather)),
+  Category = "Bayesian",
+  Value = b_weather
+)
+
+df_f <- data.frame(
+  Time = seq(nrow(gt_weather)-length(b_weather)+1, nrow(gt_weather)),
+  Category = "Frequentist",
+  Value = f_weather
+)
+
+df_n <- data.frame(
+  Time = seq(nrow(gt_weather)-length(b_weather)+1, nrow(gt_weather)),
+  Category = "NN",
+  Value = n_weather
+)
+
+# Combine data frames
+df_combined <- rbind(df_ground_truths, df_b, df_f, df_n)
+
+my_colors <- c("#F8766D", "#00BA38", "black", "#619CFF")
+
+ggplot(df_combined, aes(x = Time, y = Value, color = Category)) +
+  geom_line() +
+  labs(x = "Time", y = "Trend Value", color = "Category") +
+  theme_minimal() +
+  scale_color_manual(values = my_colors) + 
+  ggtitle("Rainfall over time") + ylab("Rainfall in inches")
+```
+
+```{r}
+# Create data frames
+df_ground_truths <- data.frame(
+  Time = 1:nrow(gt_stock),
+  Category = "Ground Truth",
+  Value = gt_stock$V1
+)
+
+df_b <- data.frame(
+  Time = seq(nrow(gt_stock)-length(b_stock)+1, nrow(gt_stock)),
+  Category = "Bayesian",
+  Value = b_stock
+)
+
+df_f <- data.frame(
+  Time = seq(nrow(gt_stock)-length(b_stock)+1, nrow(gt_stock)),
+  Category = "Frequentist",
+  Value = f_stock
+)
+
+df_n <- data.frame(
+  Time = seq(nrow(gt_stock)-length(b_stock)+1, nrow(gt_stock)),
+  Category = "NN",
+  Value = n_stock
+)
+
+# Combine data frames
+df_combined <- rbind(df_ground_truths, df_b, df_f, df_n)
+
+my_colors <- c("#F8766D", "#00BA38", "black", "#619CFF")
+
+ggplot(df_combined, aes(x = Time, y = Value, color = Category)) +
+  geom_line() +
+  labs(x = "Time", y = "Trend Value", color = "Category") +
+  theme_minimal() +
+  scale_color_manual(values = my_colors) + 
+  ggtitle("S&P 500 Close/Last price over time") + ylab("Close/Last Value")
+```
+
+
